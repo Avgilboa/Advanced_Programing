@@ -31,3 +31,4 @@ total 124
 -rw-rw-r-- 1 aviad aviad  1443 Apr 10 10:09 shell2.c
 -rw-rw-r-- 1 aviad aviad  2687 Dec 21 18:54 shell3.c
 -rw-rw-r-- 1 aviad aviad 54501 Mar 17 12:37 task1.pdf
+/home/aviad/Downloads/Advanced_Programing/task_shell

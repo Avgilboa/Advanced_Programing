@@ -8,9 +8,10 @@
 #include <string.h>
 
 int main() {
+char history[20][1024] = {""};
 char command[1024];
 char *token;
-int i;
+int i, history_index = 0;
 char *outfile;
 char* error_outfile;
 char * promt = "hello";
@@ -23,6 +24,8 @@ while (1)
     printf("%s: ", promt);
     fgets(command, 1024, stdin);
     command[strlen(command) - 1] = '\0';
+    strcpy(history[history_index] , command);
+    history_index = ( history_index + 1 ) %20;
     piping = 0;
 
     /* parse command line */
@@ -55,6 +58,12 @@ while (1)
             i++;
         }
         argv2[i] = NULL;
+    }
+    
+    if(argc1 ==1 && !strcmp(argv1[0], "!!")){
+        strcpy(command, history[(history_index - 2)% 20]);
+        printf("%s\n",history[(history_index - 2)% 20]);
+        strcpy(history[history_index-1] , command);
     }
 
     if (argc1 == 3 && ! strcmp(argv1[0], "prompt") && ! strcmp(argv1[1], "=")) {
@@ -100,8 +109,23 @@ while (1)
     if (strcmp(argv1[0], "quit") == 0) {
         exit(0);
     }
-    // ls -l > 1.txt 2> 2.txt
     
+    if(strcmp(argv1[0], "history") == 0){
+        for(i = 0; i < 20; i++){
+            printf("%s \n", history[i]);
+        }
+        continue;
+    }
+
+    /* print the status code of the last command */
+    if(argc1 ==2 && !strcmp(argv1[0], "echo")){
+        if(!strcmp(argv1[1], "$?")){
+            printf("(%d)\n", status);
+            continue;
+        }
+
+    }
+
     /* for commands not part of the shell command language */ 
 
     if (fork() == 0) { 
