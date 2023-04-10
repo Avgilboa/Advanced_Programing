@@ -1,0 +1,33 @@
+total 120
+-rwxrwxr-x 1 aviad aviad 17256 Apr 10 10:36 a.out
+-rw-rw---- 1 aviad aviad    64 Apr 10 10:30 f.txt
+-rw-rw---- 1 aviad aviad     0 Apr 10 10:37 h.txt
+-rw-rw-r-- 1 aviad aviad  1074 Dec 28 13:44 key.c
+-rwxrwxr-x 1 aviad aviad 17176 Mar 26 14:21 myshell
+-rw-rw-r-- 1 aviad aviad  3682 Apr 10 10:36 my_shell.c
+-rw-rw-r-- 1 aviad aviad  1032 Dec 21 18:54 shell1.c
+-rw-rw-r-- 1 aviad aviad  1443 Apr 10 10:09 shell2.c
+-rw-rw-r-- 1 aviad aviad  2687 Dec 21 18:54 shell3.c
+-rw-rw-r-- 1 aviad aviad 54501 Mar 17 12:37 task1.pdf
+total 124
+-rwxrwxr-x 1 aviad aviad 17304 Apr 10 10:42 a.out
+-rw-rw---- 1 aviad aviad    64 Apr 10 10:30 f.txt
+-rw-rw---- 1 aviad aviad   530 Apr 10 10:37 h.txt
+-rw-rw-r-- 1 aviad aviad  1074 Dec 28 13:44 key.c
+-rwxrwxr-x 1 aviad aviad 17176 Mar 26 14:21 myshell
+-rw-rw-r-- 1 aviad aviad  3715 Apr 10 10:42 my_shell.c
+-rw-rw-r-- 1 aviad aviad  1032 Dec 21 18:54 shell1.c
+-rw-rw-r-- 1 aviad aviad  1443 Apr 10 10:09 shell2.c
+-rw-rw-r-- 1 aviad aviad  2687 Dec 21 18:54 shell3.c
+-rw-rw-r-- 1 aviad aviad 54501 Mar 17 12:37 task1.pdf
+total 124
+-rwxrwxr-x 1 aviad aviad 17256 Apr 10 10:42 a.out
+-rw-rw---- 1 aviad aviad    64 Apr 10 10:30 f.txt
+-rw-rw---- 1 aviad aviad  1060 Apr 10 10:42 h.txt
+-rw-rw-r-- 1 aviad aviad  1074 Dec 28 13:44 key.c
+-rwxrwxr-x 1 aviad aviad 17176 Mar 26 14:21 myshell
+-rw-rw-r-- 1 aviad aviad  3684 Apr 10 10:42 my_shell.c
+-rw-rw-r-- 1 aviad aviad  1032 Dec 21 18:54 shell1.c
+-rw-rw-r-- 1 aviad aviad  1443 Apr 10 10:09 shell2.c
+-rw-rw-r-- 1 aviad aviad  2687 Dec 21 18:54 shell3.c
+-rw-rw-r-- 1 aviad aviad 54501 Mar 17 12:37 task1.pdf

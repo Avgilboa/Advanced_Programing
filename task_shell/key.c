@@ -1,6 +1,9 @@
 //https://stackoverflow.com/questions/10463201/getch-and-arrow-codes
 #include <stdio.h>
 
+https://stackoverflow.com/questions/58086775/how-to-listen-for-arrow-key-press-in-c
+
+
 int main()
 {
 	int c,n = 0;
