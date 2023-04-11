@@ -6,8 +6,16 @@
 #include "stdlib.h"
 #include "unistd.h"
 #include <string.h>
+#include<unistd.h>
+#include <signal.h>
+#define SIGINT 2
 
+/*include handler for cntrl c */
+void sig_hand(int dummy){
+    printf("\nyou pressed ctrl-c!\n");
+}
 int main() {
+signal(SIGINT, sig_hand);
 char history[20][1024] = {""};
 char command[1024];
 char *token;
@@ -17,13 +25,19 @@ char* error_outfile;
 char * promt = "hello";
 int fd, amper, cp_redirect ,redirect, error_redirect, piping, retid, status, argc1;
 int fildes[2];
+int flag =1;
 char *argv1[10], *argv2[10];
+int counter;
+// The handler of the cntrl + c 
 
 while (1)
 {
-    printf("%s: ", promt);
-    fgets(command, 1024, stdin);
-    command[strlen(command) - 1] = '\0';
+    if (flag){
+        printf("%s: ", promt);
+        fgets(command, 1024, stdin);
+        command[strlen(command) - 1] = '\0';
+    }
+    flag =1;
     strcpy(history[history_index] , command);
     history_index = ( history_index + 1 ) %20;
     piping = 0;
@@ -60,10 +74,28 @@ while (1)
         argv2[i] = NULL;
     }
     
-    if(argc1 ==1 && !strcmp(argv1[0], "!!")){
-        strcpy(command, history[(history_index - 2)% 20]);
+    if (argc1 == 1 && argv1[0][0] == '\033') {
+        if(argv1[0][1] == '[' && argv1[0][2] == 'A'){
+            printf("UP!\n");
+        }
+        else if (argv1[0][1] == '[' && argv1[0][2] == 'B')
+        {
+            printf("Down!\n");
+        }     
+    }
+
+    if(1){
+        printf("only print one");
+
+        ///!!!! printing twice !!!!! wht??
+    }
+    if(argc1 == 1 && !strcmp(argv1[0], "!!")){
+        strcpy(command, history[(history_index - 2) % 20]);
         printf("%s\n",history[(history_index - 2)% 20]);
-        strcpy(history[history_index-1] , command);
+        history_index = (history_index - 1)% 20;
+        //strcpy(history[history_index] , command);
+        flag =0;
+        continue;
     }
 
     if (argc1 == 3 && ! strcmp(argv1[0], "prompt") && ! strcmp(argv1[1], "=")) {
@@ -126,7 +158,10 @@ while (1)
 
     }
 
-    /* for commands not part of the shell command language */ 
+    if (argc1 ==2 && !strcmp(argv1[0], "cd")){
+        if(chdir(argv1[1]) == -1)
+            perror("cd error");
+    }
 
     if (fork() == 0) { 
 
@@ -176,7 +211,12 @@ while (1)
             execvp(argv2[0], argv2);
         } 
         else
-            execvp(argv1[0], argv1);
+        // if the thread of execvp not wotking, close the thread 
+        if (execvp(argv1[0], argv1) == -1){
+            exit(0);
+            perror("execvp error");
+            printf("\n");
+        }
     }
     /* parent continues over here... */
     /* waits for child to exit if required */
