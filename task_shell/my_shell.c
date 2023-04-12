@@ -13,6 +13,7 @@
 /*include handler for cntrl c */
 void sig_hand(int dummy){
     printf("\nyou pressed ctrl-c!\n");
+    return;
 }
 int main() {
 signal(SIGINT, sig_hand);
@@ -57,7 +58,6 @@ while (1)
     }
     argv1[i] = NULL;
     argc1 = i;
-
     /* Is command empty */
     if (argv1[0] == NULL)
         continue;
@@ -74,21 +74,31 @@ while (1)
         argv2[i] = NULL;
     }
     
-    if (argc1 == 1 && argv1[0][0] == '\033') {
-        if(argv1[0][1] == '[' && argv1[0][2] == 'A'){
-            printf("UP!\n");
+    if (argc1 == 1 && command[0] == '\033') {
+        int place = 0;
+        int counter_arrow = 0;
+        --history_index;
+        while (command[place] == '\033'){
+            if(command[place + 1] == '[' && command[place + 2] == 'A'){
+                counter_arrow++;
+            }
+            else if (command[place + 1] == '[' && command[place + 2] == 'B')
+            {
+                counter_arrow--;
+            }
+            place+=3;
         }
-        else if (argv1[0][1] == '[' && argv1[0][2] == 'B')
-        {
-            printf("Down!\n");
-        }     
+        if(counter_arrow < 0){
+            continue;
+        }
+        else{
+            strcpy(command, history[(history_index - counter_arrow) % 20]);
+            flag =0;
+            continue;
+        }
+
     }
 
-    if(1){
-        printf("only print one");
-
-        ///!!!! printing twice !!!!! wht??
-    }
     if(argc1 == 1 && !strcmp(argv1[0], "!!")){
         strcpy(command, history[(history_index - 2) % 20]);
         printf("%s\n",history[(history_index - 2)% 20]);
