@@ -1,3 +1,5 @@
+// for the map we use this method: https://stackoverflow.com/questions/647054/porting-stdmap-to-c
+
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <fcntl.h>
@@ -8,14 +10,24 @@
 #include <string.h>
 #include<unistd.h>
 #include <signal.h>
+#include <search.h>
+#include <stdlib.h>
+#include <stdio.h>
 #define SIGINT 2
+typedef struct map{
+    char key [1024];
+    char value [1024];
+}map;
 
 /*include handler for cntrl c */
 void sig_hand(int dummy){
     printf("\nyou pressed ctrl-c!\n");
     return;
 }
+
+
 int main() {
+int size_of_map = 0;
 signal(SIGINT, sig_hand);
 char history[20][1024] = {""};
 char command[1024];
@@ -29,10 +41,14 @@ int fildes[2];
 int flag =1;
 char *argv1[10], *argv2[10];
 int counter;
+int exevp_flag = 0;
+int add_varb = 0;
+map* root = (map*)malloc(1024 * sizeof(map));
 // The handler of the cntrl + c 
 
 while (1)
 {
+    exevp_flag = 0;
     if (flag){
         printf("%s: ", promt);
         fgets(command, 1024, stdin);
@@ -149,6 +165,7 @@ while (1)
         cp_redirect = 0;
 
     if (strcmp(argv1[0], "quit") == 0) {
+        free(root);
         exit(0);
     }
     
@@ -159,20 +176,41 @@ while (1)
         continue;
     }
 
+    if(argc1 == 3 && argv1[0][0] == '$' && !strcmp(argv1[1], "=")){
+        strcpy(root[size_of_map].key , argv1[0]);
+        strcpy(root[size_of_map].value, argv1[2]);
+        size_of_map++;
+
+
+    }
+
+
     /* print the status code of the last command */
-    if(argc1 ==2 && !strcmp(argv1[0], "echo")){
+    if(argc1 >= 2 && !strcmp(argv1[0], "echo")){
         if(!strcmp(argv1[1], "$?")){
             printf("(%d)\n", status);
             continue;
         }
-
-    }
+        else{
+            exevp_flag =1;
+        }
+}
 
     if (argc1 ==2 && !strcmp(argv1[0], "cd")){
         if(chdir(argv1[1]) == -1)
             perror("cd error");
     }
+    if (argc1 ==2 && !strcmp(argv1[0], "read")){
+        char temp [1024] ={0};
+        scanf("%s", temp);
+        root[size_of_map].key[0] = '$';
+        strcpy(root[size_of_map].key + 1, argv1[1]);
+        strcpy(root[size_of_map].value, temp);
+        size_of_map++;
+        wait(NULL);
+        continue;
 
+    }
     if (fork() == 0) { 
 
         /* redirection of error IO */
@@ -222,11 +260,35 @@ while (1)
         } 
         else
         // if the thread of execvp not wotking, close the thread 
+        if(exevp_flag){
+            int printer;
+            for(int i=1;i<argc1;i++){
+                printer =1;
+                for(int j=0; j<size_of_map;j++){
+                    if(!strcmp(argv1[i], root[j].key)){
+                        printf("%s ", root[j].value);
+                        j = size_of_map;
+                        printer =0;
+                    }
+                }
+                if(printer){
+                    printf("%s ", argv1[i]);
+                    printer =0;
+                }
+            }
+            printf("\n");
+            exit(0);
+        }
+          
+        if(!exevp_flag){
         if (execvp(argv1[0], argv1) == -1){
             exit(0);
             perror("execvp error");
             printf("\n");
+            }
         }
+
+
     }
     /* parent continues over here... */
     /* waits for child to exit if required */
