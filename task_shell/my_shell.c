@@ -44,10 +44,14 @@ int counter;
 int exevp_flag = 0;
 int add_varb = 0;
 map* root = (map*)malloc(1024 * sizeof(map));
+int ifi=0;
+char then_command[1024];
+char else_command[1024];
 // The handler of the cntrl + c 
 
 while (1)
 {
+    ifi =0;
     exevp_flag = 0;
     if (flag){
         printf("%s: ", promt);
@@ -170,8 +174,8 @@ while (1)
     }
     
     if(strcmp(argv1[0], "history") == 0){
-        for(i = 0; i < 20; i++){
-            printf("%s \n", history[i]);
+        for(i = 0; i < history_index; i++){
+            printf("(%d) %s \n",i+1 , history[i]);
         }
         continue;
     }
@@ -183,8 +187,30 @@ while (1)
 
 
     }
-
-
+    ///// if condition <--
+    /// then
+    // command  <--
+    // else
+    // command <--
+    // fi
+    if( !strcmp(argv1[0], "if")){
+        char fi_command[1024];
+        scanf("%s", then_command);
+        if(! strcpy(then_command, "then")){
+            fgets(then_command, 1024, stdin);
+            then_command[strlen(then_command) - 1] = '\0';
+            }
+            else{continue;}
+            scanf("%s", else_command);
+            if(!strcpy(else_command, "else")){
+                fgets(else_command, 1024, stdin);
+                else_command[strlen(else_command) - 1] = '\0';
+                }
+                else{continue;}
+                scanf("%s", fi_command);
+                if(strcmp(fi_command, "fi")){continue;}
+                flag =0;
+        }
     /* print the status code of the last command */
     if(argc1 >= 2 && !strcmp(argv1[0], "echo")){
         if(!strcmp(argv1[1], "$?")){
@@ -212,7 +238,6 @@ while (1)
 
     }
     if (fork() == 0) { 
-
         /* redirection of error IO */
         if (error_redirect) {
             fd = creat(error_outfile, 0660); 
@@ -279,8 +304,9 @@ while (1)
             printf("\n");
             exit(0);
         }
-          
-        if(!exevp_flag){
+
+        if(!exevp_flag ){
+            printf("YOU ARE HERE\n");
         if (execvp(argv1[0], argv1) == -1){
             exit(0);
             perror("execvp error");
