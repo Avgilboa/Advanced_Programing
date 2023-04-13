@@ -122,38 +122,38 @@ void exe_c(map* root,char **argv, int argc)
 
     }
     
-    // if( !strcmp(argv[0], "if")){
-    //     char fi_command[1024];
-    //     scanf("%s", then_command);
-    //     if(!strcmp(then_command, "then")){
-    //         read(0, then_command, 1024);
-    //         then_command[strlen(then_command) - 1] = '\0';
-    //     }
-    //         scanf("%s", else_command);
-    //         if(!strcmp(else_command, "else")){
-    //             read(0, else_command, 1024);
-    //             else_command[strlen(else_command) - 1] = '\0';
-    //             }
-    //             scanf("%s", fi_command);
-    //             if(strcmp(fi_command, "fi")){return;}
-    //             printf("GOT HERE");
-    //             char * temp_argv[argc-1];
-    //             for(int i=0;i<argc-2;i++){
-    //                 temp_argv[i] = argv[i+1];
-    //             }
-    //             temp_argv[argc-2] = NULL;
-    //             exe_c(root, temp_argv, argc-1);
-    //             if(status == 0){
-    //                 strcpy(command, then_command);
-    //                 flag =0;
-    //                 return;
-    //             }
-    //             else{
-    //                 strcpy(command, else_command);
-    //                 flag =0;
-    //                 return;
-    //             }
-    //     }
+    if( !strcmp(argv[0], "if")){
+        char fi_command[1024];
+        scanf("%s", then_command);
+        if(!strcmp(then_command, "then")){
+            read(0, then_command, 1024);
+            then_command[strlen(then_command) - 1] = '\0';
+        }
+        scanf("%s", else_command);
+        if(!strcmp(else_command, "else")){
+            read(0, else_command, 1024);
+            else_command[strlen(else_command) - 1] = '\0';
+        }
+        scanf("%s", fi_command);
+        if(strcmp(fi_command, "fi")){return;}
+        char *temp_argv[10];
+        for(int i=0;i<argc-1;i++){
+            strcpy(temp_argv[i],argv[i+1]);
+        }
+        //temp_argv[argc-1] = NULL;
+        exe_c(root, temp_argv, argc-1);
+        if(status == 0){
+            strcpy(command, then_command);
+            flag =0;
+            return;
+        }
+        else{
+            strcpy(command, else_command);
+            flag =0;
+            return;
+        }
+        exit(1);
+    }
 
     if(argc == 1 && !strcmp(argv[0], "!!")){
         strcpy(command, history[(history_index - 2) % 20]);
