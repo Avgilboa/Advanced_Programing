@@ -34,7 +34,7 @@ char *token;
 int i, history_index = 0;
 char *outfile;
 char* error_outfile;
-char * promt = "hello";
+char promt[1024] = "hello";
 int fd, amper, cp_redirect ,redirect, error_redirect, piping, retid, status, argc1,count_pipe;
 int fildes[2];
 int flag =1;
@@ -165,7 +165,7 @@ void exe_c(map* root,char **argv, int argc)
     }
 
     if (argc == 3 && ! strcmp(argv[0], "prompt") && ! strcmp(argv[1], "=")) {
-        promt = argv[2];
+        strcpy(promt, argv[2]);
         return;
     }
     /* Does command line end with & */ 
