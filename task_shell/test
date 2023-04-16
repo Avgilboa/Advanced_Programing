@@ -1,0 +1,34 @@
+date >> myfile
+cat myfile | cat
+echo $?
+$name = shmuel
+$name2 = aviad
+echo my name is $name and i friend of $name2
+ls
+ls -l | sort
+? 2> myfile
+Control-C
+read name3
+yossi
+echo $name3
+?
+echo $?
+if echo 1
+then
+echo great
+else
+echo oooii
+fi
+if jalkfjla
+then
+echo great
+else
+echo oooii
+fi
+ls > t.txt
+prompt = shalom
+sort colors.txt
+^[[A
+pwd | cat
+!!
+quit
