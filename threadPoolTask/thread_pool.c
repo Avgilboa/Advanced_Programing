@@ -28,9 +28,8 @@ void executeTask(TextData task){
     while(task.id != _index){
         pthread_cond_wait(&condQueue,&mutexQueue);
     }
-
-    //printf("encripted data: %s\n",task.message);
-    printf("%s\n",task.message);
+    printf("%s",task.message);
+    fflush(stdout);
     _index++;
     taskCount--;
     pthread_cond_signal(&condQueue);
@@ -41,7 +40,8 @@ void decryptexecuteTask(TextData task){
         pthread_cond_wait(&condQueue,&mutexQueue);
     }
 
-    printf("decripted data: %s\n",task.message);
+    printf("%s",task.message);
+    fflush(stdout);
     _index++;
     taskCount--;
     pthread_cond_signal(&condQueue);
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]){
     }
     else{
         perror("not get flag error");
-        exit(1);
+        exit(0);
     }
     for(int i=0; i<10; i++){
         taskQueue[i] = malloc(sizeof(TextData));
@@ -99,14 +99,14 @@ int main(int argc, char *argv[]){
     
     if(!strcmp(flag,  "encrypt"))
     {
-        printf("%s\n",flag);
+        //printf("%s\n",flag);
         for(i = 0; i < 4; i++){
             pthread_create(&th[i], NULL, &enWorker, NULL);
         }
     }
     else
     {
-        printf("d %s\n",flag);
+        //printf("d %s\n",flag);
         for(i = 0; i < 4; i++){
             pthread_create(&th[i], NULL, &deWorker, NULL);
         }
@@ -117,7 +117,7 @@ int main(int argc, char *argv[]){
     while(1)
     {
         (*taskQueue)[i].id = i;
-        (*taskQueue)[i].message = malloc(1024);
+        (*taskQueue)[i].message = malloc(sizeof(char) * 1024);
         (*taskQueue)[i].key_num = k;
         if (fgets((*taskQueue)[i].message, 1024, stdin) == NULL) {
             // EOF

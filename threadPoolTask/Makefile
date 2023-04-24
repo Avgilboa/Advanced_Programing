@@ -1,11 +1,10 @@
 .PHONY: all
-all: task stdinExample
+all: task _lib
 
 task:	codec.h basic_main.c
-	gcc basic_main.c -L. -l Codec -o encoder
-
-stdinExample:	stdin_main.c
-		gcc stdin_main.c -L. -l Codec -o tester
+	gcc thread_pool.c -o thread_pool -lpthread libCodec.so
+_lib: task
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
 
 .PHONY: clean
 clean:
