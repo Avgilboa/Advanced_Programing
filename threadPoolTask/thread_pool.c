@@ -8,72 +8,63 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include<unistd.h>
-
+#include <unistd.h>
+# define num_threads sysconf(_SC_NPROCESSORS_ONLN)
 int _index =0;
+// the next index to print.
+pthread_mutex_t mutexQueue;
+// mutex thread save the critical section
+pthread_cond_t condQueue;
+// cind thread for hold/wait and signal to threads for working
+pthread_mutex_t mutextasks;
+pthread_cond_t condtasks;
 
 typedef struct TextData{
    int  id;
    char *message;
    int  key_num;
+   struct TextData* next;
 }TextData;
-
-pthread_mutex_t mutexQueue;
-pthread_cond_t condQueue;
-
-TextData* taskQueue[1024];
+typedef struct flag{
+    char flag[1024];
+}flag, *pflag;
+TextData* _firstQ = NULL ;
+TextData* _lastQ = NULL;
+// Queue for any line
 int taskCount = 0;
+// count the number of tasks in queue 
 
-void executeTask(TextData task){
-    encrypt(task.message,task.key_num);
-    while(task.id != _index){
+void executeTask(TextData* task, pflag flag){
+    if(!strcmp(flag->flag, "encrypt"))
+        encrypt(task->message,task->key_num);
+    else if(!strcmp(flag->flag, "decrypt"))
+        decrypt(task->message,task->key_num);
+    while(task->id != _index){
+        // the thread finish before the preview thread finish
         pthread_cond_wait(&condQueue,&mutexQueue);
     }
-    printf("%s",task.message);
+    printf("%s",task->message);
     fflush(stdout);
     _index++;
     taskCount--;
-    pthread_cond_signal(&condQueue);
+    free(task);
+    pthread_cond_signal(&condtasks);
+    // if there is a waiting thread it will be signal
 }
-void decryptexecuteTask(TextData task){
-    decrypt(task.message,task.key_num);
-    while(task.id != _index){
-        pthread_cond_wait(&condQueue,&mutexQueue);
-    }
 
-    printf("%s",task.message);
-    fflush(stdout);
-    _index++;
-    taskCount--;
-    pthread_cond_signal(&condQueue);
-}
-void* enWorker(void* argv){
+void* Worker(void* argv){
     while(1){
         pthread_mutex_lock(&mutexQueue);
-        if(_index == 10){
-            pthread_mutex_unlock(&mutexQueue);
-            break;
-        }
         while(taskCount == 0){
             pthread_cond_wait(&condQueue,&mutexQueue);
         }
-        executeTask((*taskQueue)[_index]);
+        TextData* _node = _firstQ;
+        _firstQ = _firstQ->next;
+        executeTask(_node, (pflag)argv);
         pthread_mutex_unlock(&mutexQueue);
     }
 }
-void* deWorker(void* argv){
-    while(1){
-        pthread_mutex_lock(&mutexQueue);
-        if(_index == 10){
-            pthread_mutex_unlock(&mutexQueue);
-            break;
-        }
-        while(taskCount == 0){
-            pthread_cond_wait(&condQueue,&mutexQueue);
-        }
-        decryptexecuteTask((*taskQueue)[_index]);
-        pthread_mutex_unlock(&mutexQueue);
-    }
-}
+
 
 int main(int argc, char *argv[]){
     char *flag;
@@ -86,59 +77,56 @@ int main(int argc, char *argv[]){
         flag = "encrypt";
     }
     else{
-        perror("not get flag error");
+        perror("Usage: ./thread_pool -e/-d key_num");
         exit(0);
-    }
-    for(int i=0; i<10; i++){
-        taskQueue[i] = malloc(sizeof(TextData));
-    }   
-    pthread_t th[4];
+    }  
+    pthread_t th[num_threads];
+    pflag _fl = malloc(sizeof(flag));
+    strcpy(_fl->flag, flag);
     pthread_mutex_init(&mutexQueue, NULL);
     pthread_cond_init(&condQueue, NULL);
     int i;
-    
-    if(!strcmp(flag,  "encrypt"))
-    {
-        //printf("%s\n",flag);
-        for(i = 0; i < 4; i++){
-            pthread_create(&th[i], NULL, &enWorker, NULL);
-        }
+    for(i = 0; i < num_threads; i++){
+        pthread_create(&th[i], NULL, &Worker, _fl);
     }
-    else
-    {
-        //printf("d %s\n",flag);
-        for(i = 0; i < 4; i++){
-            pthread_create(&th[i], NULL, &deWorker, NULL);
-        }
-    }
-    
     int k = atoi(argv[2]);
     i = 0;
     while(1)
     {
-        (*taskQueue)[i].id = i;
-        (*taskQueue)[i].message = malloc(sizeof(char) * 1024);
-        (*taskQueue)[i].key_num = k;
-        if (fgets((*taskQueue)[i].message, 1024, stdin) == NULL) {
+        TextData* node = malloc(sizeof(TextData));
+        node->id = i;
+        node->message = malloc(sizeof(char) * 1024);
+        node->key_num = k;
+        if (fgets(node->message, 1024, stdin) == NULL) {
             // EOF
-            pthread_cond_signal(&condQueue);
+            // pthread_cond_signal(&condQueue);
             break;
         }
-        
-        //scanf("%s",(*taskQueue)[i].message);
+        if( _firstQ == NULL) {
+            _firstQ = node;
+            _firstQ->next = _lastQ;
+        }
+        else{
+            if(_lastQ == NULL){
+                _lastQ = node;
+                _firstQ->next = _lastQ;
+            }
+            else{
+                _lastQ->next = node;
+                _lastQ = _lastQ->next;
+            }
+        }
         taskCount++;
         i++;
         pthread_cond_signal(&condQueue);
+        while(taskCount == 10){
+            pthread_cond_wait(&condtasks,&mutextasks);
+        }
     }
-    for(i = 0; i < 4; i++){
+    for(i = 0; i < num_threads; i++){
         pthread_join(th[i], NULL);
     }
 
-    for (i = 0; i < 10; i++)
-    {
-        free(taskQueue[i]->message);
-        free(taskQueue[i]);
-    }
 
     pthread_mutex_destroy(&mutexQueue);
     pthread_cond_destroy(&condQueue);
