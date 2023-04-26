@@ -9,6 +9,7 @@
 #include <pthread.h>
 #include<unistd.h>
 #include <unistd.h>
+#include <sys/time.h>
 # define num_threads sysconf(_SC_NPROCESSORS_ONLN)
 int _index =0;
 // the next index to print.
@@ -41,12 +42,11 @@ void executeTask(TextData* task, pflag flag){
         decrypt(task->message,task->key_num);
     while(task->id != _index){
         // the thread finish before the preview thread finish
-        pthread_cond_wait(&condQueue,&mutexQueue);
+        //pthread_cond_wait(&condQueue,&mutexQueue);
     }
     printf("%s",task->message);
     fflush(stdout);
     _index++;
-    taskCount--;
     free(task);
     pthread_cond_signal(&condtasks);
     // if there is a waiting thread it will be signal
@@ -54,14 +54,13 @@ void executeTask(TextData* task, pflag flag){
 
 void* Worker(void* argv){
     while(1){
-        pthread_mutex_lock(&mutexQueue);
         while(taskCount == 0){
-            pthread_cond_wait(&condQueue,&mutexQueue);
+            //pthread_cond_wait(&condtasks,&mutextasks);
         }
         TextData* _node = _firstQ;
         _firstQ = _firstQ->next;
+        taskCount--;
         executeTask(_node, (pflag)argv);
-        pthread_mutex_unlock(&mutexQueue);
     }
 }
 
@@ -85,6 +84,10 @@ int main(int argc, char *argv[]){
     strcpy(_fl->flag, flag);
     pthread_mutex_init(&mutexQueue, NULL);
     pthread_cond_init(&condQueue, NULL);
+    pthread_mutex_init(&mutextasks, NULL);
+    pthread_cond_init(&condtasks, NULL);
+    time_t start, end;
+    start = time(NULL);
     int i;
     for(i = 0; i < num_threads; i++){
         pthread_create(&th[i], NULL, &Worker, _fl);
@@ -119,7 +122,7 @@ int main(int argc, char *argv[]){
         taskCount++;
         i++;
         pthread_cond_signal(&condQueue);
-        while(taskCount == 10){
+        while(taskCount == num_threads){
             pthread_cond_wait(&condtasks,&mutextasks);
         }
     }
@@ -130,7 +133,10 @@ int main(int argc, char *argv[]){
 
     pthread_mutex_destroy(&mutexQueue);
     pthread_cond_destroy(&condQueue);
-
+    pthread_mutex_destroy(&mutextasks);
+    pthread_cond_destroy(&condtasks);
+    end = time(NULL);
+    printf("time: %ld\n", end - start);
 
     return 0;
 }
