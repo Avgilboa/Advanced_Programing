@@ -20,6 +20,10 @@ pthread_cond_t condQueue;
 pthread_mutex_t mutextasks;
 pthread_cond_t condtasks;
 
+pthread_mutex_t mutexadd;
+pthread_cond_t condadd;
+
+
 typedef struct TextData{
    int  id;
    char *message;
@@ -40,27 +44,37 @@ void executeTask(TextData* task, pflag flag){
         encrypt(task->message,task->key_num);
     else if(!strcmp(flag->flag, "decrypt"))
         decrypt(task->message,task->key_num);
+    pthread_mutex_lock(&mutexQueue);
     while(task->id != _index){
+        //printf("The number of ID is %d\n", task->id);
         // the thread finish before the preview thread finish
-        //pthread_cond_wait(&condQueue,&mutexQueue);
+        pthread_cond_wait(&condQueue,&mutexQueue);
     }
+    //printf("THe ID that excute is: %d\n", task->id);
     printf("%s",task->message);
     fflush(stdout);
     _index++;
     free(task);
-    pthread_cond_signal(&condtasks);
+    pthread_mutex_unlock(&mutexQueue);
+    pthread_cond_broadcast(&condQueue);
+    // pthread_cond_signal(&condQueue);
+    
     // if there is a waiting thread it will be signal
 }
 
 void* Worker(void* argv){
     while(1){
+        // means that i excute all the relevant task that was in the queue
         while(taskCount == 0){
-            //pthread_cond_wait(&condtasks,&mutextasks);
+            pthread_cond_wait(&condtasks,&mutextasks);
         }
         TextData* _node = _firstQ;
         _firstQ = _firstQ->next;
         taskCount--;
+        //pthread_cond_signal(&condadd);
         executeTask(_node, (pflag)argv);
+        pthread_cond_broadcast(&condtasks);
+        //printf("The number of task is: %d\n", taskCount);
     }
 }
 
@@ -78,7 +92,7 @@ int main(int argc, char *argv[]){
     else{
         perror("Usage: ./thread_pool -e/-d key_num");
         exit(0);
-    }  
+    } 
     pthread_t th[num_threads];
     pflag _fl = malloc(sizeof(flag));
     strcpy(_fl->flag, flag);
@@ -86,6 +100,8 @@ int main(int argc, char *argv[]){
     pthread_cond_init(&condQueue, NULL);
     pthread_mutex_init(&mutextasks, NULL);
     pthread_cond_init(&condtasks, NULL);
+    pthread_mutex_init(&mutexadd, NULL);
+    pthread_cond_init(&condadd, NULL);
     time_t start, end;
     start = time(NULL);
     int i;
@@ -94,7 +110,8 @@ int main(int argc, char *argv[]){
     }
     int k = atoi(argv[2]);
     i = 0;
-    while(1)
+    int stop =1;
+    while(stop)
     {
         TextData* node = malloc(sizeof(TextData));
         node->id = i;
@@ -102,8 +119,14 @@ int main(int argc, char *argv[]){
         node->key_num = k;
         if (fgets(node->message, 1024, stdin) == NULL) {
             // EOF
-            // pthread_cond_signal(&condQueue);
-            break;
+            //pthread_cond_signal(&condQueue);
+            pthread_cond_broadcast(&condtasks);
+            /*
+            if(taskCount == 0){
+                stop = 0;
+                continue;
+            }
+        */
         }
         if( _firstQ == NULL) {
             _firstQ = node;
@@ -121,22 +144,29 @@ int main(int argc, char *argv[]){
         }
         taskCount++;
         i++;
-        pthread_cond_signal(&condQueue);
-        while(taskCount == num_threads){
-            pthread_cond_wait(&condtasks,&mutextasks);
+        pthread_cond_broadcast(&condtasks);
+        while (taskCount > num_threads)
+        {
+            //pthread_cond_wait(&condadd, &mutexadd);
         }
+        
     }
     for(i = 0; i < num_threads; i++){
         pthread_join(th[i], NULL);
     }
 
 
+
     pthread_mutex_destroy(&mutexQueue);
     pthread_cond_destroy(&condQueue);
     pthread_mutex_destroy(&mutextasks);
     pthread_cond_destroy(&condtasks);
+    pthread_mutex_destroy(&mutexadd);
+    pthread_cond_destroy(&condadd);
+
     end = time(NULL);
-    printf("time: %ld\n", end - start);
+    printf("Time taken: %.2fs\n", (double)(end - start));
+    
 
     return 0;
 }

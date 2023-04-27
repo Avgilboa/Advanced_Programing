@@ -1,4 +1,10 @@
+#include "codec.h"
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include<unistd.h>
+#include <unistd.h>
 #include <sys/time.h>
 
 int main(int argc, char *argv[]){
@@ -18,16 +24,16 @@ int main(int argc, char *argv[]){
     char massage[1024];
     int k = atoi(argv[2]);
     int i = 0;
-    time_t start, end;
-    start = time(NULL);
-    while(fgets(massage, 1024, stdin) != NULL){
+    while(1){
+        if(fgets(massage, 1024, stdin) == NULL){
+            continue;
+        }
         if(!strcmp(flag, "encrypt"))
             encrypt(massage,k);
         else if(!strcmp(flag, "decrypt"))
             decrypt(massage,k);
         printf("%s", massage);
+        fflush(stdout);
     }
-    end = time(NULL);
-    printf("time: %ld\n", end - start);
     return 0;
 }

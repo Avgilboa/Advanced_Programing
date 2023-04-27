@@ -3,7 +3,7 @@ all: task _lib
 
 task:	codec.h basic_main.c
 	gcc thread_pool.c -o thread_pool -lpthread libCodec.so
-_lib: task
+_lib:
 	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
 
 .PHONY: clean
